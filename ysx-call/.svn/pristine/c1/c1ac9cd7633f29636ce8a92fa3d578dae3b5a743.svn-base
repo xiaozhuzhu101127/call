@@ -1,0 +1,306 @@
+package com.topjet.fmp.yls.command.parameter;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class GoodsSourceParameter {
+	
+	private Long GSID;
+	
+	private String GSORDER;
+	
+	private String CT_DEPART;
+	
+	private String CT_TARGET;
+	
+	private String GSTYPE;
+	
+	private String GSSCALE;
+	
+	private String GSUNIT;
+	
+	private String TKLEN;
+	
+	private String DCT_GSLOAD;
+	
+	private String DCT_PAYWAY;
+	
+	private String GSSTS;
+	
+	private String GSDESC;
+	
+	private String GSADDR;
+	
+	private String GSISSUEDATE;
+	
+	private Long YSLACCOUNT;
+	
+	private String TKTYPE;
+	
+	private Integer SHIPPOINT;
+	
+	private String GSLOADADDR;
+	
+	private String GSLOADDATE ;
+	
+	private String CALLPRICE;
+	
+	private String GSMOBILE;
+	
+	private Shipper SHiPPER;
+	
+	// 信息费
+	@Deprecated
+	private String GSINFOPRICE;
+	// 信息费
+	private String GSMSGPRICE;
+	
+	
+	
+	
+	public String getGSMSGPRICE() {
+		return GSMSGPRICE;
+	}
+
+	public void setGSMSGPRICE(String gSMSGPRICE) {
+		GSMSGPRICE = gSMSGPRICE;
+	}
+
+	public Shipper getSHiPPER() {
+		return SHiPPER;
+	}
+
+	public void setSHiPPER(Shipper sHiPPER) {
+		SHiPPER = sHiPPER;
+	}
+
+	private List<Price> PRICES = new ArrayList<Price>();
+
+	public Long getGSID() {
+		return GSID;
+	}
+
+	public void setGSID(Long gSID) {
+		GSID = gSID;
+	}
+
+	public String getGSORDER() {
+		return GSORDER;
+	}
+
+	public void setGSORDER(String gSORDER) {
+		GSORDER = gSORDER;
+	}
+
+	public String getCT_DEPART() {
+		return CT_DEPART;
+	}
+
+	public void setCT_DEPART(String cT_DEPART) {
+		CT_DEPART = cT_DEPART;
+	}
+
+	public String getCT_TARGET() {
+		return CT_TARGET;
+	}
+
+	public void setCT_TARGET(String cT_TARGET) {
+		CT_TARGET = cT_TARGET;
+	}
+
+	public String getGSTYPE() {
+		return GSTYPE;
+	}
+
+	public void setGSTYPE(String gSTYPE) {
+		GSTYPE = gSTYPE;
+	}
+
+	public String getGSSCALE() {
+		return GSSCALE;
+	}
+
+	public void setGSSCALE(String gSSCALE) {
+		GSSCALE = gSSCALE;
+	}
+
+	public String getGSUNIT() {
+		return GSUNIT;
+	}
+
+	public void setGSUNIT(String gSUNIT) {
+		GSUNIT = gSUNIT;
+	}
+
+	public String getTKLEN() {
+		return TKLEN;
+	}
+
+	public void setTKLEN(String tKLEN) {
+		TKLEN = tKLEN;
+	}
+
+	public String getDCT_GSLOAD() {
+		return DCT_GSLOAD;
+	}
+
+	public void setDCT_GSLOAD(String dCT_GSLOAD) {
+		DCT_GSLOAD = dCT_GSLOAD;
+	}
+
+	public String getDCT_PAYWAY() {
+		return DCT_PAYWAY;
+	}
+
+	public void setDCT_PAYWAY(String dCT_PAYWAY) {
+		DCT_PAYWAY = dCT_PAYWAY;
+	}
+
+	public String getGSDESC() {
+		return GSDESC;
+	}
+
+	public void setGSDESC(String gSDESC) {
+		GSDESC = gSDESC;
+	}
+
+
+	public List<Price> getPRICES() {
+		return PRICES;
+	}
+
+	public void setPRICES(List<Price> pRICES) {
+		PRICES = pRICES;
+	}
+
+	public String getCALLPRICE() {
+		return CALLPRICE;
+	}
+
+	public void setCALLPRICE(String cALLPRICE) {
+		CALLPRICE = cALLPRICE;
+	}
+
+	public String getGSSTS() {
+		return GSSTS;
+	}
+
+	public void setGSSTS(String gSSTS) {
+		GSSTS = gSSTS;
+	}
+
+
+
+	public String getGSADDR() {
+		return GSADDR;
+	}
+
+	public void setGSADDR(String gSADDR) {
+		GSADDR = gSADDR;
+	}
+
+	public String getGSISSUEDATE() {
+		return GSISSUEDATE;
+	}
+
+	public void setGSISSUEDATE(String gSISSUEDATE) {
+		GSISSUEDATE = gSISSUEDATE;
+	}
+
+	
+
+	public Long getYSLACCOUNT() {
+		return YSLACCOUNT;
+	}
+
+	public void setYSLACCOUNT(Long ySLACCOUNT) {
+		YSLACCOUNT = ySLACCOUNT;
+	}
+
+	public String getTKTYPE() {
+		return TKTYPE;
+	}
+
+	public void setTKTYPE(String tKTYPE) {
+		TKTYPE = tKTYPE;
+	}
+
+	public Integer getSHIPPOINT() {
+		return SHIPPOINT;
+	}
+
+	public void setSHIPPOINT(Integer sHIPPOINT) {
+		SHIPPOINT = sHIPPOINT;
+	}
+
+	public String getGSLOADADDR() {
+		return GSLOADADDR;
+	}
+
+	public void setGSLOADADDR(String gSLOADADDR) {
+		GSLOADADDR = gSLOADADDR;
+	}
+
+	public String getGSLOADDATE() {
+		return GSLOADDATE;
+	}
+
+	public void setGSLOADDATE(String gSLOADDATE) {
+		GSLOADDATE = gSLOADDATE;
+	}
+
+	public String getGSMOBILE() {
+		return GSMOBILE;
+	}
+
+	public void setGSMOBILE(String gSMOBILE) {
+		GSMOBILE = gSMOBILE;
+	}
+
+	public String getGSINFOPRICE() {
+		return GSINFOPRICE;
+	}
+
+	public void setGSINFOPRICE(String gSINFOPRICE) {
+		GSINFOPRICE = gSINFOPRICE;
+	}
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+}

@@ -1,0 +1,440 @@
+package com.topjet.fmp.yls.command;
+
+import java.text.MessageFormat;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
+
+import com.topjet.fmp.aa.Credential;
+import com.topjet.fmp.aa.CredentialFactory;
+import com.topjet.fmp.aa.domain.AccountLog;
+import com.topjet.fmp.base.DC;
+import com.topjet.fmp.base.domain.City;
+import com.topjet.fmp.base.domain.Dict;
+import com.topjet.fmp.base.domain.PhonePlace;
+import com.topjet.fmp.base.service.PhonePlaceService;
+import com.topjet.fmp.biz.tk.domain.TkOnlineTemp;
+import com.topjet.fmp.exception.AccountException;
+import com.topjet.fmp.exception.MemberException;
+import com.topjet.fmp.svc.domain.SVCCriteria;
+import com.topjet.fmp.svc.domain.ServiceOrder;
+import com.topjet.fmp.svc.service.SVCOrderService;
+import com.topjet.fmp.sys.service.CityService;
+import com.topjet.fmp.sys.service.DictService;
+import com.topjet.fmp.user.domain.Agent;
+import com.topjet.fmp.user.domain.MemberGpsCurrent;
+import com.topjet.fmp.user.domain.YslAccountCriteria;
+import com.topjet.fmp.user.domain.YslMember;
+import com.topjet.fmp.user.domain.YslMemberBO;
+import com.topjet.fmp.user.service.AgentService;
+import com.topjet.fmp.user.service.MemberGpsCurrentService;
+import com.topjet.fmp.user.service.YslAccountService;
+import com.topjet.fmp.user.service.YslMemberService;
+import com.topjet.fmp.util.CommonUtils;
+import com.topjet.fmp.util.Constants;
+import com.topjet.fmp.yls.RemoteResponse;
+import com.topjet.fmp.yls.util.IpUtil;
+import com.topjet.fmp.yls.util.PhoneLocation;
+
+public class BaseCommand implements Command {
+	
+   @Autowired
+   private PhonePlaceService  phonePlaceService;	
+
+	@Autowired
+	private CityService cityService;
+
+	@Autowired
+	private AgentService agentService;
+
+	@Autowired
+	private DictService dictService;
+
+	@Autowired
+	private YslMemberService yslMemberService;
+	
+
+	@Autowired
+	private YslAccountService yslAccountService;
+	
+	@Autowired
+	private SVCOrderService svcOrderService;
+	
+	@Autowired
+	private MemberGpsCurrentService  memberGpsCurrentService;
+	
+
+
+	public RemoteResponse execute(Credential credential,
+			Map<String, Object> args) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public String getPalced(Credential credential, Long userid, String phone) {
+
+		if (phone == null) {
+			return null;
+		}
+
+		String place = getLocationCode(phone);
+
+		if (StringUtils.hasText(place)) {
+			YslMember member = new YslMember();
+			member.setUSRID(userid);
+			member.setPLACE(place);
+			try {
+				// 可以更新不成功
+				yslMemberService.update(member);
+			} catch (Throwable e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
+		return place;
+
+	}
+
+	public String getLocationCode(String tel) {
+		
+		//t_phone_place
+		if(PhoneLocation.veriyMobile(tel)){
+			tel=PhoneLocation.formatMobile(tel);
+			PhonePlace phonePlace =phonePlaceService.selectByPrimaryKey(tel.substring(0,7));
+			if(phonePlace!=null){
+				return phonePlace.getCODE();
+			}
+		}
+		
+		//此接口还是需要的，但是先从数据库查找，数据库中有了，就不调接口了，没有才调
+        //http://apis.juhe.cn/mobile/get?phone=13429667914&key=cf7381ed5aca866a4e75e2528cb58c70
+		String area = PhoneLocation.getLocaleByTel(tel);
+		if (area != null) {
+			area = area.trim();
+		}
+		if ("上海".equals(area) || "重庆".equals(area) || "天津".equals(area)
+				|| "北京".equals(area)) {
+
+			area = area + " " + area;
+
+		}
+		if (PhoneLocation.UNKNOW.equals(area)) {
+			return null;
+		}
+		try {
+			City city = cityService.selectCodeByCity(area, " ");
+			if (city == null) {
+				return null;
+			}
+
+			return city.getCTCODE();
+		} catch (Throwable e) {
+			e.printStackTrace();
+			return null;
+		}
+
+	}
+
+	public String getRemark(Credential tail,String remark,boolean isService){
+		
+		if (StringUtils.hasText(remark)) {
+			return remark;
+		}
+		
+		Dict city = dictService.transDictCode(DC.YSL_REMARK);
+		//订购了服务的
+		if(isService){
+			return city.getDCTVALUE1();
+		}else {
+		
+			//如果是没有订购服务的会员，则要得到登录人的场站		
+		YslMember temp = yslMemberService.getYslMemberById(tail.getUSRID());
+	
+		Long stid=temp.getTSID();
+	    if (stid != null&&stid!=0) {						
+		  List<Agent> sts=agentService.selectBoothByStid(stid);
+		  if(sts==null||sts.size()<=0||!isBooth(sts)){
+					return city.getDCTVALUE3();
+		  }else{
+					remark = city.getDCTVALUE2();
+					//取有该场站的所有代理的摊位
+					StringBuilder sbr = new StringBuilder();
+					for(int i=0;i<sts.size();i++){
+						sbr.append(sts.get(i).getBOOTH()).append(",");
+					}
+			
+						Object[] obj = new Object[] { sbr.toString().substring(0, sbr.length()-1)};
+						remark = MessageFormat.format(remark, obj);
+						return remark;
+				
+		            }
+				
+				
+			} else {
+				return city.getDCTVALUE3();
+			}
+		}
+		
+		
+	}
+	
+	//代理商是否有摊位
+	public boolean isBooth(List<Agent> list){
+		for(Agent agent:list){
+			if(StringUtils.hasText(agent.getBOOTH()))
+				return true;
+		}
+		return false;
+		
+	}
+	
+	public String getSmsMessage(String svccode){
+		
+		if("YSXTP".equals(svccode)){
+			return Constants.YSL_TP_SMS;	
+		}
+		if("YSXZS".equals(svccode)){
+			return Constants.YSL_ZS_SMS;	
+				}
+		if("YSXTRIAL".equals(svccode)){
+			return Constants.YSL_SY_SMS;
+			
+		}
+		return null;
+	}
+	
+	
+	//取订购服务的code,先钻石，后铜牌，再 试用
+	public String getServiceOrderCode(Credential tail,Long USRID){
+		
+		
+		SVCCriteria svcCriteria = new SVCCriteria();
+		svcCriteria.setUSRID(USRID);
+		svcCriteria.setSVCCODE(Constants.YSX);
+
+		List<ServiceOrder> list = svcOrderService.selectAllValidServiceByCode(tail,
+				svcCriteria);
+		if (list == null||list.size()<=0) {
+		    return null;
+		}
+		
+		//先钻石
+		for(int i=0;i<list.size();i++){
+			if(Constants.YSX_ZS.equals(list.get(i).getSVCCODE())){
+				return Constants.YSX_ZS;
+			}
+		}
+		
+		//后钻石
+				for(int i=0;i<list.size();i++){
+					if(Constants.YSX_YP.equals(list.get(i).getSVCCODE())){
+						return Constants.YSX_YP;
+					}
+				}
+		
+		//后铜牌
+		for(int i=0;i<list.size();i++){
+			if(Constants.YSX_TP.equals(list.get(i).getSVCCODE())){
+				return Constants.YSX_TP;
+			}
+		}
+		
+		//再试用
+		for(int i=0;i<list.size();i++){
+			if(Constants.YSX_SY.equals(list.get(i).getSVCCODE())){
+				return Constants.YSX_SY;
+			}
+		}
+		return null;
+	}
+	
+	
+	public Integer getYslRegionRank(Credential tail,String place,Long usrid,String DCT_UT){
+		YslAccountCriteria criter = new YslAccountCriteria();
+		criter.setCT_HOMETOWN(CommonUtils.stripBX(place));
+		criter.setUSRID(usrid);
+		criter.setDCT_UT(DCT_UT);
+		
+		return  yslAccountService.getYslRegionRank(tail, criter);
+		
+		
+		
+	}
+	
+	protected Long addCallMember(Credential credential, Map<String, Object> map,
+			String phoneNumber,YslMemberBO yslMemberBO) throws MemberException,AccountException{
+		
+	
+			if (PhoneLocation.veriyMobile(phoneNumber)) {
+				// 如果是手机对号码去0处理
+			
+			 yslMemberBO.setMOBILE1( PhoneLocation.formatMobile(phoneNumber));
+
+			} else {
+				//如果有6个0的话，说明是分机，保存到000000
+				if(phoneNumber.indexOf(Constants.YSX_MOBILE_FENJI)>0){
+				    yslMemberBO.setTEL2(phoneNumber);
+				}else{
+					yslMemberBO.setTEL1(phoneNumber);
+				}
+				
+			}
+
+			// 根据电话号码去判断
+			// System.out.println("来电号码" + bindPhone);
+			String location = getLocationCode(phoneNumber);
+
+			// 常驻地
+
+			yslMemberBO.setPLACE(location);
+//				yslMemberBO.setDCT_UT(DC.UT_TW);
+			
+			HttpServletRequest request = (HttpServletRequest) map.get(Command.P_HTTPREQUEST);
+
+			AccountLog accountLog = new AccountLog();
+			// 获取IP地址
+
+			accountLog.setDCT_ACCAT(DC.ACCAT_CS);
+			accountLog.setDCT_ACCA(DC.ACCA_LOGIN);
+			accountLog.setDCT_APP(DC.APP_REMOTE);
+			accountLog.setALIPADDR(IpUtil.getRemoteIP(request));
+
+			
+		
+		    return yslMemberService.createMember(credential, yslMemberBO);
+				
+		
+		}
+	
+	
+	
+	
+	protected Long addCallMember(Credential credential, Map<String, Object> map,
+			String phoneNumber) throws MemberException,AccountException{
+			YslMemberBO  yslMemberBO = new YslMemberBO();			
+			return addCallMember(credential, map, phoneNumber,yslMemberBO);
+		
+		}
+	
+	protected Long addCallMember(Credential credential, TkOnlineTemp temp) throws MemberException,AccountException{
+			YslMemberBO  yslMemberBO = new YslMemberBO();			
+			
+		   return null;
+		}
+	
+	
+	
+	
+	//没有登录，要添加数据，构造一个Credential
+	protected Credential  getEmptyCredential (){
+		Map<String, Object> values = new HashMap<String, Object>();
+		values.put("USRID", 1L);
+		values.put("DCT_UC", "");
+		values.put("SESSIONID", "");
+		values.put("USRNAME","");
+		values.put("IPADDR", "");
+
+		return CredentialFactory.getInstance().create(values);
+	}
+	
+	
+	
+	//没有登录，要添加数据，构造一个Credential
+	protected Credential  getNB2DCredential (){
+		Agent  agent =agentService.queryByLoginName("NB2D");
+		Map<String, Object> values = new HashMap<String, Object>();
+		values.put("USRID", agent.getUSRID());
+		values.put("DCT_UC", agent.getDCT_UC());
+		values.put("SESSIONID", "");
+		values.put("USRNAME","");
+		values.put("IPADDR", "");
+
+		return CredentialFactory.getInstance().create(values);
+	}
+	
+	
+	
+	
+
+	public CityService getCityService() {
+		return cityService;
+	}
+
+	public YslMemberService getYslMemberService() {
+		return yslMemberService;
+	}
+
+	public AgentService getAgentService() {
+		return agentService;
+	}
+
+	public void setAgentService(AgentService agentService) {
+		this.agentService = agentService;
+	}
+
+	public void setCityService(CityService cityService) {
+		this.cityService = cityService;
+	}
+
+	public DictService getDictService() {
+		return dictService;
+	}
+
+	public void setDictService(DictService dictService) {
+		this.dictService = dictService;
+	}
+
+	public SVCOrderService getSvcOrderService() {
+		return svcOrderService;
+	}
+	
+	
+	public String getCityCodeByBaiduCode(Credential tail,String baiduCode){
+		
+		//如果传过来是空的，那么先从百度当前位置表中取得code,baiduCode=code
+		 if(!StringUtils.hasText(baiduCode)){
+			MemberGpsCurrent  current = memberGpsCurrentService.select(tail.getUSRNAME());
+			baiduCode=current==null?null:current.getCITYCODE();
+		 }
+		 
+		
+		 if(StringUtils.hasText(baiduCode)){
+			 City city =cityService.queryCityByValue2(baiduCode);
+				if(city!=null){
+					return city.getCTCODE();
+				} 
+		 }
+		 
+		
+		
+		YslMember yslmember = yslMemberService.getYslMemberById(tail.getUSRID());
+			if(StringUtils.hasText(yslmember.getPLACE())){
+				return yslmember.getPLACE();
+		}
+		return null;		
+	}
+	
+	protected Integer  getPage(Integer offset,int pagesize){
+
+		
+		if(offset==0||offset==null){
+			return 1;
+		}
+		
+		return offset/pagesize+1;
+		
+	
+	}
+
+	public MemberGpsCurrentService getMemberGpsCurrentService() {
+		return memberGpsCurrentService;
+	}
+
+
+}

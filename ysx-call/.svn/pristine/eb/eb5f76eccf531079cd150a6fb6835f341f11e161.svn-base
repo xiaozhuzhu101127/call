@@ -1,0 +1,300 @@
+package com.topjet.fmp.yls.command.user;
+
+public class LoginParameter {
+
+	private Long userID;
+
+	private String realName;
+
+	private Long sex;
+
+	// private String age;
+
+	private String phoneNumber;
+
+	private String mobilePhoneNumber;
+	
+	private Short allowOtherViewMyCertInfo;
+
+	
+//会员类型
+	private String userType;
+
+	//是否认证过的
+	private Short isCert;
+
+   private String idCardPhoto;
+
+	//注册时间
+	private String registerTime;
+
+	private String place; // 常住地
+	
+	
+	private String placeName;
+
+	//是否是代理点账号
+	private Integer agentAccount;
+
+	//运联商提示信息
+	private String comment;
+
+	//公司名称
+	private String companyName;
+
+	//工作年限
+	private Long workedYears;
+
+	// 经营地址
+	private String busiAddress;
+
+	// "经营路线
+	private String busiLines;
+
+	// 用户户籍所在地
+	private String userHouseHold;
+
+	// 运输能力
+	private String transportInfo;
+	
+
+
+	private Integer age;
+
+	//服务ID
+	private String service;
+	
+	
+	private String allService;
+	
+	
+	private String recommendMobile;
+	
+	//1表示传过
+	private Integer isrecommend=0;
+
+	
+
+	
+	public Integer getIsrecommend() {
+		return isrecommend;
+	}
+
+	public void setIsrecommend(Integer isrecommend) {
+		this.isrecommend = isrecommend;
+	}
+
+	public String getPlaceName() {
+		return placeName;
+	}
+
+	public void setPlaceName(String placeName) {
+		this.placeName = placeName;
+	}
+
+	public Short getAllowOtherViewMyCertInfo() {
+		return allowOtherViewMyCertInfo;
+	}
+
+	public void setAllowOtherViewMyCertInfo(Short allowOtherViewMyCertInfo) {
+		this.allowOtherViewMyCertInfo = allowOtherViewMyCertInfo;
+	}
+
+	//证书编号
+	private String certificationID;
+
+	public String getCertificationID() {
+		return certificationID;
+	}
+
+	public void setCertificationID(String certificationID) {
+		this.certificationID = certificationID;
+	}
+
+	public Integer getAge() {
+		return age;
+	}
+
+	public void setAge(Integer age) {
+		this.age = age;
+	}
+
+	private TrustInfoParameter trustInfo = new TrustInfoParameter();
+
+	public Long getUserID() {
+		return userID;
+	}
+
+	public void setUserID(Long userID) {
+		this.userID = userID;
+	}
+
+	public String getRealName() {
+		return realName;
+	}
+
+	public String getService() {
+		return service;
+	}
+
+	public void setService(String service) {
+		this.service = service;
+	}
+
+	public void setRealName(String realName) {
+		this.realName = realName;
+	}
+
+	public Short getIsCert() {
+		return isCert;
+	}
+
+	public void setIsCert(Short isCert) {
+		this.isCert = isCert;
+	}
+
+	public Integer getAgentAccount() {
+		return agentAccount;
+	}
+
+	public String getRecommendMobile() {
+		return recommendMobile;
+	}
+
+	public void setRecommendMobile(String recommendMobile) {
+		this.recommendMobile = recommendMobile;
+	}
+
+	public void setAgentAccount(Integer agentAccount) {
+		this.agentAccount = agentAccount;
+	}
+
+	public Long getSex() {
+		return sex;
+	}
+
+	public void setSex(Long sex) {
+		this.sex = sex;
+	}
+
+	public String getBusiAddress() {
+		return busiAddress;
+	}
+
+	public String getTransportInfo() {
+		return transportInfo;
+	}
+
+	public void setTransportInfo(String transportInfo) {
+		this.transportInfo = transportInfo;
+	}
+
+	public void setBusiAddress(String busiAddress) {
+		this.busiAddress = busiAddress;
+	}
+
+	public String getBusiLines() {
+		return busiLines;
+	}
+
+	public void setBusiLines(String busiLines) {
+		this.busiLines = busiLines;
+	}
+
+	public String getUserHouseHold() {
+		return userHouseHold;
+	}
+
+	public void setUserHouseHold(String userHouseHold) {
+		this.userHouseHold = userHouseHold;
+	}
+
+	public String getPhoneNumber() {
+		return phoneNumber;
+	}
+
+	public void setPhoneNumber(String phoneNumber) {
+		this.phoneNumber = phoneNumber;
+	}
+
+	public String getMobilePhoneNumber() {
+		return mobilePhoneNumber;
+	}
+
+	public void setMobilePhoneNumber(String mobilePhoneNumber) {
+		this.mobilePhoneNumber = mobilePhoneNumber;
+	}
+
+	public String getUserType() {
+		return userType;
+	}
+
+	public void setUserType(String userType) {
+		this.userType = userType;
+	}
+
+	public String getRegisterTime() {
+		return registerTime;
+	}
+
+	public void setRegisterTime(String registerTime) {
+		this.registerTime = registerTime;
+	}
+
+	public String getAllService() {
+		return allService;
+	}
+
+	public void setAllService(String allService) {
+		this.allService = allService;
+	}
+
+	public String getPlace() {
+		return place;
+	}
+
+	public void setPlace(String place) {
+		this.place = place;
+	}
+
+	public TrustInfoParameter getTrustInfo() {
+		return trustInfo;
+	}
+
+	public void setTrustInfo(TrustInfoParameter trustInfo) {
+		this.trustInfo = trustInfo;
+	}
+
+	public String getComment() {
+		return comment;
+	}
+
+	public String getCompanyName() {
+		return companyName;
+	}
+
+	public void setCompanyName(String companyName) {
+		this.companyName = companyName;
+	}
+
+	public Long getWorkedYears() {
+		return workedYears;
+	}
+
+	public void setWorkedYears(Long workedYears) {
+		this.workedYears = workedYears;
+	}
+
+
+	public String getIdCardPhoto() {
+		return idCardPhoto;
+	}
+
+	public void setIdCardPhoto(String idCardPhoto) {
+		this.idCardPhoto = idCardPhoto;
+	}
+
+	public void setComment(String comment) {
+		this.comment = comment;
+	}
+}

@@ -1,0 +1,541 @@
+package com.topjet.fmp.yls.command.user;
+
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import com.topjet.fmp.aa.Credential;
+import com.topjet.fmp.app.dao.CargoOnlineBO;
+import com.topjet.fmp.app.domain.CargoOnline;
+import com.topjet.fmp.app.domain.CargoOnlineCriteria;
+import com.topjet.fmp.app.domain.LogisticsPark;
+import com.topjet.fmp.app.domain.MobileSite;
+import com.topjet.fmp.app.domain.ParkCriteria;
+import com.topjet.fmp.app.domain.Weizhang;
+import com.topjet.fmp.app.domain.WeizhangCriteria;
+import com.topjet.fmp.app.domain.WeizhangReq;
+import com.topjet.fmp.app.domain.WeizhangReqBO;
+import com.topjet.fmp.app.domain.WeizhangReqCriteria;
+import com.topjet.fmp.app.service.CargoOnlineService;
+import com.topjet.fmp.app.service.LogisticsParkService;
+import com.topjet.fmp.app.service.WeizhangReqService;
+import com.topjet.fmp.app.service.WeizhangService;
+import com.topjet.fmp.user.domain.SiteCriteria;
+import com.topjet.fmp.user.domain.UserSite;
+import com.topjet.fmp.user.domain.YslMemberBO;
+
+import com.topjet.fmp.user.service.UserSiteService;
+import com.topjet.fmp.user.service.YslMemberService;
+import com.topjet.fmp.user.util.MobileConstants;
+import com.topjet.fmp.util.Base64;
+import com.topjet.fmp.util.CLSBase64;
+import com.topjet.fmp.util.Constants;
+import com.topjet.fmp.yls.RemoteResponse;
+import com.topjet.fmp.yls.command.BaseCommand;
+
+@Component("app_command")
+public class AppCommand extends BaseCommand {
+
+	private Log log = LogFactory.getLog(AppCommand.class);
+
+	@Autowired
+	private UserSiteService userSiteService;
+
+	@Autowired
+	private LogisticsParkService logisticsParkService;
+
+	@Autowired
+	private YslMemberService yslMemberService;
+
+	@Autowired
+	private CargoOnlineService cargoOnlineService;
+	
+	@Autowired
+	private WeizhangService  weizhangService;
+	
+	@Autowired
+	private WeizhangReqService  weizhangReqService;
+
+	@Override
+	public RemoteResponse execute(Credential credential,
+			Map<String, Object> args) {
+		// TODO Auto-generated method stub
+		return super.execute(credential, args);
+	}
+
+	public RemoteResponse getSites(
+
+	Credential credential, Map<String, Object> map) {
+		RemoteResponse res = new RemoteResponse();
+
+		String place = getCityCodeByBaiduCode(credential,
+				(String) map.get("place"));
+
+		// 此处用的是偏移量，需要注意
+		Integer offset = (Integer) map.get("offset");
+
+		SiteCriteria ca = new SiteCriteria();
+
+		ca.setCT_STADDR(place);
+		ca.setPagesize(5);
+
+		List<MobileSite> mobileSites = new ArrayList<MobileSite>();
+		Map newMap = new HashMap();
+		int count = userSiteService.countByCria(credential, ca);
+		if (count <= offset) {
+
+			res.setSucc(1);
+			res.setMsg("没有数据了！");
+			newMap.put("site", mobileSites);
+			res.setResult(newMap);
+			return res;
+		}
+		ca.setPage(getPage(offset, ca.getPagesize()));
+
+		List<UserSite> sites = userSiteService.listByCria(credential, ca);
+
+		for (int i = 0; i < sites.size(); i++) {
+			UserSite tempSite = sites.get(i);
+			MobileSite temp = new MobileSite();
+			temp.setStname(tempSite.getSTNAME());
+			temp.setStaddr(tempSite.getSTDETAILADDR());
+			temp.setStdesc(tempSite.getSTDESC());
+			mobileSites.add(temp);
+		}
+
+		newMap.put("site", mobileSites);
+		res.setResult(newMap);
+
+		return res;
+
+	}
+
+	public RemoteResponse getCommonLPS(Credential credential,
+			Map<String, Object> map) {
+
+		RemoteResponse res = new RemoteResponse();
+
+		String place = getCityCodeByBaiduCode(credential,
+				(String) map.get("place"));
+
+		String dctLps = (String) map.get("dctLps");
+
+		// 此处用的是偏移量，需要注意
+		Integer offset = (Integer) map.get("offset");
+
+		List<MobileSite> mobileSites = new ArrayList<MobileSite>();
+		Map newMap = new HashMap();
+		ParkCriteria ca = new ParkCriteria();
+		ca.setDCT_LPS(dctLps);
+		ca.setCT_LPSAREA(place);
+		ca.setPagesize(5);
+
+		int count = logisticsParkService.countByCria(credential, ca);
+		if (count <= offset) {
+
+			res.setSucc(1);
+			res.setMsg("没有数据了！");
+			newMap.put("site", mobileSites);
+			res.setResult(newMap);
+			return res;
+		}
+
+		ca.setPage(getPage(offset, ca.getPagesize()));
+		List<LogisticsPark> sites = logisticsParkService.listByCria(credential,
+				ca);
+
+		for (int i = 0; i < sites.size(); i++) {
+			LogisticsPark tempSite = sites.get(i);
+			MobileSite temp = new MobileSite();
+			temp.setStname(tempSite.getLPSNAME());
+			temp.setStaddr(tempSite.getLPSADDR());
+			temp.setStdesc(tempSite.getDESCRIPTION());
+			temp.setTel(tempSite.getLPSTEL());
+			mobileSites.add(temp);
+		}
+
+		newMap.put("site", mobileSites);
+		res.setResult(newMap);
+
+		return res;
+
+	}
+
+	public RemoteResponse getRepairMarket(Credential credential,
+			Map<String, Object> map) {
+
+		return getCommonLPS(credential, map);
+	}
+
+	public RemoteResponse getStations(Credential credential,
+			Map<String, Object> map) {
+
+		return getCommonLPS(credential, map);
+	}
+
+	public RemoteResponse getTkOffice(Credential credential,
+			Map<String, Object> map) {
+
+		return getCommonLPS(credential, map);
+	}
+
+	// public RemoteResponse getCargoOnline(Credential credential, Map<String,
+	// Object> map){
+	//
+	//
+	// RemoteResponse res = new RemoteResponse();
+	// res.setSucc(0);
+	//
+	// String place = (String) map.get("place");
+	//
+	// String dctLps = (String) map.get("dctLps");
+	//
+	// //此处用的是偏移量，需要注意
+	// Integer offset = (Integer)map.get("offset");
+	//
+	//
+	//
+	// ParkCriteria ca = new ParkCriteria();
+	// ca.setDCT_LPS(dctLps);
+	// ca.setCT_LPSAREA(place);
+	// ca.setPagesize(5);
+	// if(offset!=null){
+	// ca.setPage(offset/ca.getPagesize());
+	// }else{
+	// offset=0;
+	// }
+	//
+	//
+	// int count =logisticsParkService.countByCria(credential, ca);
+	// if(count<offset){
+	//
+	// res.setSucc(0);
+	// res.setMsg("没有数据了！");
+	// return res;
+	// }
+	//
+	// List<LogisticsPark> sites =logisticsParkService.listByCria(credential,
+	// ca);
+	//
+	// List<MobileSite> mobileSites= new ArrayList<MobileSite>();
+	// for(int i=0;i<sites.size();i++){
+	// LogisticsPark tempSite = sites.get(i);
+	// MobileSite temp = new MobileSite();
+	// temp.setStname(tempSite.getLPSNAME());
+	// temp.setStaddr(tempSite.getLPSADDR());
+	// temp.setStdesc(tempSite.getDESCRIPTION());
+	// temp.setTel(tempSite.getLPSTEL());
+	// mobileSites.add(temp);
+	// }
+	//
+	//
+	// Map newMap = new HashMap();
+	// newMap.put("site", mobileSites);
+	// res.setResult(newMap);
+	//
+	// return res;
+	//
+	// }
+
+	public RemoteResponse addCargoOnline(Credential credential,
+			Map<String, Object> map) {
+
+		RemoteResponse res = new RemoteResponse();
+		res.setSucc(1);
+
+		// String CT_REGOIN = (String) map.get("CT_REGOIN");
+		String CT_REGOIN = getCityCodeByBaiduCode(credential,
+				(String) map.get("CT_REGOIN"));
+
+		String msg = (String) map.get("msg");
+		
+		String place = (String) map.get("place");
+		if (msg.length() >= 100) {
+			res.setSucc(0);
+			res.setMsg("您输入的值过大，请控制在100个字数之内！");
+			return res;
+		}
+
+		CargoOnline online = new CargoOnline();
+		online.setCT_REGOIN(CT_REGOIN);
+		online.setMSG(msg);
+		online.setPLACE(place);
+		YslMemberBO memberBO = yslMemberService.getYslMemberBO(credential
+				.getUSRID());
+		//手机写的一律为4表示会员，其他为后台发布的
+		online.setDCT_UC("4");
+		online.setREALNAME(memberBO.getREALNAME());
+		online.setYSLACCOUNT(memberBO.getYSLACCOUNT());
+		if (memberBO.getPHOTOID() != null) {
+			online.setPICTURE_ID(memberBO.getPHOTOID());
+		}
+		cargoOnlineService.add(credential, online);
+
+		res.setMsg("大货在线增加成功！");
+
+		return res;
+
+	}
+
+	public RemoteResponse updateCargoCount(Credential credential,
+			Map<String, Object> map) {
+
+		RemoteResponse res = new RemoteResponse();
+		res.setSucc(1);
+
+		Integer CARGOID = (Integer) map.get("CARGOID");
+
+		Long count = cargoOnlineService.updateCargoCount(Long.valueOf(CARGOID));
+
+		Map tempMap = new HashMap();
+		tempMap.put("count", count);
+		res.setResult(tempMap);
+		res.setMsg("大货在线顶成功！");
+
+		return res;
+
+	}
+
+
+	public RemoteResponse getCargoOnline(Credential credential,
+			Map<String, Object> map) {
+
+		RemoteResponse res = new RemoteResponse();
+
+		// String place = (String) map.get("place");
+
+		String place = getCityCodeByBaiduCode(credential,
+				(String) map.get("place"));
+		//0表示查找会员发布的，1表示轻松一刻 。。。
+		String type = (String) map.get("type");
+				
+
+		// 此处用的是偏移量，需要注意
+		Integer offset = (Integer) map.get("offset");
+
+		CargoOnlineCriteria ca = new CargoOnlineCriteria();
+		ca.setCT_REGOIN(place);
+		ca.setDCT_UC(type);
+
+		ca.setPagesize(5);
+		List<CargoOnlineBO> onlines = new ArrayList<CargoOnlineBO>();
+		Map newMap = new HashMap();
+
+		int count = cargoOnlineService.countByCria(credential, ca);
+		if (count <= offset) {
+
+			res.setSucc(1);
+			res.setMsg("没有数据了！");
+			newMap.put("cargo", onlines);
+			res.setResult(newMap);
+			return res;
+		}
+
+		ca.setPage(getPage(offset, ca.getPagesize()));
+
+		onlines = cargoOnlineService.listByCria(credential, ca);
+		if (onlines != null && onlines.size() > 0) {
+			for (int i = 0; i < onlines.size(); i++) {
+				String area =onlines.get(i).getCT_REGOIN();
+				if(StringUtils.hasText(area)){
+					//对于SH_SH  BJ_BJ  TJ_TJ ZQ_ZQ
+					area=area.replace("SH_SH", "SH");
+					area=area.replace("BJ_BJ", "BJ");
+					area=area.replace("TJ_TJ", "TJ");
+					area=area.replace("ZQ_ZQ", "ZQ");
+					onlines.get(i).setCT_REGOIN(area);
+					
+				}
+				
+
+				
+
+				if (null != onlines.get(i).getPICTURE_ID()) {
+					onlines.get(i).setPADDR(
+							MobileConstants.YSX_PHOTO
+									+ onlines.get(i).getPICTURE_ID());
+				}
+				
+								
+				if("1".equals(onlines.get(i).getDCT_UC())){
+					onlines.get(i).setPADDR("http://www.156315.com/images/qsyk.png");
+					onlines.get(i).setREALNAME("轻松一刻");
+					
+				}else if("2".equals(onlines.get(i).getDCT_UC())){
+					onlines.get(i).setPADDR("http://www.156315.com/images/yfa.png");
+					onlines.get(i).setREALNAME("运商行发布");
+				}else if("3".equals(onlines.get(i).getDCT_UC())){
+					onlines.get(i).setPADDR("http://www.156315.com/images/rd.png");
+					onlines.get(i).setREALNAME("热点新闻");
+				}
+			}
+		}
+
+		newMap.put("cargo", onlines);
+		res.setResult(newMap);
+
+		return res;
+
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public RemoteResponse getMessages(Credential credential,
+			Map<String, Object> map) {
+
+		RemoteResponse res = new RemoteResponse();
+
+		// String place = (String) map.get("place");
+
+		String place = getCityCodeByBaiduCode(credential,
+				(String) map.get("place"));
+
+		// 此处用的是偏移量，需要注意
+		Integer offset = (Integer) map.get("offset");
+
+		CargoOnlineCriteria ca = new CargoOnlineCriteria();
+		ca.setCT_REGOIN(place);
+
+
+		return res;
+
+	}
+	
+	
+	
+	
+	
+	public RemoteResponse addWeiZhang(Credential credential,
+			Map<String, Object> map) {
+
+		RemoteResponse res = new RemoteResponse();
+
+		 String photo = (String) map.get("photo");
+		 String city = (String) map.get("city");
+		 WeizhangReq  weizhangReq = new WeizhangReq();
+		 photo= photo.replaceAll(" ", "+");
+			weizhangReq.setPICTURE(Base64.decode(photo));
+		
+		 weizhangReq.setSEARCH_CITY(city);
+		 weizhangReq.setPHONE(credential.getUSRNAME());
+		 weizhangReqService.create(credential, weizhangReq);
+		return res;
+
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public RemoteResponse getWeizhangResultList(Credential credential,
+			Map<String, Object> map) {
+
+		RemoteResponse res = new RemoteResponse();
+
+		// 此处用的是偏移量，需要注意
+		Integer offset = (Integer) map.get("offset");
+		Integer weizhangID = (Integer) map.get("weizhangID");
+
+		WeizhangCriteria ca = new WeizhangCriteria();
+		ca.setReqid(Long.valueOf(weizhangID));
+		ca.setPagesize(100);
+		List<Weizhang> weizhangs = new ArrayList<Weizhang>();
+		Map newMap = new HashMap();
+
+		int count = weizhangService.countByCriteria(credential, ca);
+		if (count <= offset) {
+
+			res.setSucc(1);
+			res.setMsg("没有数据了！");
+			newMap.put("weizhang", weizhangs);
+			res.setResult(newMap);
+			return res;
+		}
+
+		ca.setPage(getPage(offset, ca.getPagesize()));
+
+		weizhangs = weizhangService.listWeizhang(credential, ca);
+	
+		
+		newMap.put("weizhang", weizhangs);
+		res.setResult(newMap);
+
+		return res;
+
+	}
+	
+	
+	
+	public RemoteResponse getWeizhangList(Credential credential,
+			Map<String, Object> map) {
+
+		RemoteResponse res = new RemoteResponse();
+
+		// 此处用的是偏移量，需要注意
+		Integer offset = (Integer) map.get("offset");		
+
+
+		WeizhangReqCriteria ca = new WeizhangReqCriteria();
+		ca.setCREATE_BY(credential.getUSRID());
+		ca.setPagesize(10);
+		List<WeizhangReq> weizhangs = new ArrayList<WeizhangReq>();
+		Map newMap = new HashMap();
+
+		int count = weizhangReqService.countByCriteria(credential, ca);
+		if (count <= offset) {
+
+			res.setSucc(1);
+			res.setMsg("没有数据了！");
+			newMap.put("weizhang", weizhangs);
+			res.setResult(newMap);
+			return res;
+		}
+
+		ca.setPage(getPage(offset, ca.getPagesize()));
+
+		weizhangs = weizhangReqService.listWeizhangReq(credential, ca);
+		List<WeizhangReqBO> boList = new ArrayList<WeizhangReqBO>();
+		for(int i=0;i<weizhangs.size();i++){
+			WeizhangReqBO bo = new WeizhangReqBO();
+			//图片不要
+		
+			BeanUtils.copyProperties(weizhangs.get(i),bo);
+			bo.setTimes(weizhangs.get(i).getCREATE_TIME().getTime());
+			boList.add(bo);
+		}
+		
+		newMap.put("weizhang", boList);
+		res.setResult(newMap);
+
+		return res;
+
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+
+}
